@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SLEEP_TIME 1
+
 /*
  * Cliente TCP
  */
@@ -90,6 +92,8 @@ int main(int argc, char **argv)
       case 1:
       {
         //escrever dado
+        
+
         strcpy(sendbuf, "write");
         if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
         {
@@ -97,9 +101,9 @@ int main(int argc, char **argv)
           exit(5);
         }
 
-        sleep(0.25);
-
-        strcpy(sendbuf, "Dado do cliente para o server");
+        printf("Escreva o dado a ser escrito: ");
+        scanf("%s",sendbuf);
+        //strcpy(sendbuf, "Dado do cliente para o server");
         if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
         {
           perror("Send()");

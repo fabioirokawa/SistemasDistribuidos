@@ -32,6 +32,7 @@ int main(int argc, char **argv)
 	int length;
 	pid_t pid, fid;
 
+
 	/*
      * Cria um socket TCP (stream) para aguardar conexoes
      */
@@ -123,6 +124,7 @@ int main(int argc, char **argv)
 						perror("Recv()");
 						exit(6);
 					}
+                    printf("%s\n",recvbuf);
 					guardaDadoS1(recvbuf);
 					guardaDadoS2(recvbuf);
 				}
@@ -249,7 +251,7 @@ void guardaDadoS1(char *dado)
         perror("Send()");
         exit(5);
     }
-    printf("Dado enviado ao servidor de dados. \n");
+    printf("Dado enviado ao servidor de dados 1. \n");
 
     /* Fecha o socket */
     close(s);
@@ -314,7 +316,7 @@ void guardaDadoS2(char *dado)
         perror("Send()");
         exit(5);
     }
-    printf("Dado enviado ao servidor de dados. \n");
+    printf("Dado enviado ao servidor de dados 2. \n");
 
     /* Fecha o socket */
     close(s);

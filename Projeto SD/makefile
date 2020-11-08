@@ -4,3 +4,4 @@ all:
 	gcc serverData1.c -pthread -o data1 -g
 	gcc serverData2.c -pthread -o data2 -g
 	gcc serverDir.c -o diretorio -g
+	gcc serverLog.c -o log -g
