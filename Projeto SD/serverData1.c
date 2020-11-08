@@ -33,8 +33,6 @@ int main(int argc, char **argv)
     int namelen;
     pid_t pid, fid;
 
-    FILE *fp;
-
     
     //Criando memoria compartilhada
     shmid = shmget(SHM_KEY, 1024, IPC_CREAT |  0666);
@@ -116,7 +114,7 @@ int main(int argc, char **argv)
 		 */
 	      
 		/* Fecha o socket aguardando por conexoes */
-		//close(s);
+		close(s);
 
 		/* Processo filho obtem seu proprio pid */
 		fid = getpid();

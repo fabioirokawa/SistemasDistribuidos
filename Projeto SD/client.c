@@ -8,11 +8,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define SLEEP_TIME 1
+#define PORTA_DIRETORIO 7000
+#define ENDERECO_DIRETORIO "localhost"
+#define ENDERECO_SERVIDOR "localhost"
 
-/*
- * Cliente TCP
- */
+int obtemServer();
 
 int main(int argc, char **argv)
 {
@@ -22,35 +22,29 @@ int main(int argc, char **argv)
   struct hostent *hostnm;
   struct sockaddr_in server;
   int s, opcao = -1;
+  
+  int portaServidor = obtemServer();
 
-  /*
-  * O primeiro argumento (argv[1]) e o hostname do servidor.
-  * O segundo argumento (argv[2]) e a porta do servidor.
-  */
-  if (argc != 3)
-  {
-    fprintf(stderr, "Use: %s hostname porta\n", argv[0]);
-    exit(1);
-  }
+  /* ====================================================================================================*/
+  /* ========================================Conexao com servidor========================================*/
+  /* ====================================================================================================*/
 
   /*
   * Obtendo o endereco IP do servidor
   */
-
-  hostnm = gethostbyname(argv[1]);
+  hostnm = gethostbyname(ENDERECO_SERVIDOR);
   if (hostnm == (struct hostent *)0)
   {
     fprintf(stderr, "Gethostbyname failed\n");
     exit(2);
   }
 
-  port = (unsigned short)atoi(argv[2]);
-
   /*
   * Define o endereco IP e a porta do servidor
   */
+
   server.sin_family = AF_INET;
-  server.sin_port = htons(port);
+  server.sin_port = htons(portaServidor);
   server.sin_addr.s_addr = *((unsigned long *)hostnm->h_addr);
 
   /*
@@ -69,6 +63,8 @@ int main(int argc, char **argv)
     exit(4);
   }
 
+  printf("Conectado ao servidor com porta: %d. \n\n", portaServidor);
+
   while (opcao != 0)
   {
     printf("1 - Escrever\n");
@@ -78,88 +74,86 @@ int main(int argc, char **argv)
 
     switch (opcao)
     {
-      case 0:
+    case 0:
+    {
+      strcpy(sendbuf, "exit");
+      if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
       {
-        strcpy(sendbuf, "exit");
-        if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-        break;
+        perror("Send()");
+        exit(5);
+      }
+      break;
+    }
+
+    case 1:
+    {
+      //escrever dado
+      strcpy(sendbuf, "write");
+      if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
+      {
+        perror("Send()");
+        exit(5);
       }
 
-      case 1:
+      sleep(0.25);
+
+      strcpy(sendbuf, "Dado do cliente para o server");
+      if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
       {
-        //escrever dado
-        
+        perror("Send()");
+        exit(5);
+      }
+      system("clear");
+      break;
+    }
 
-        strcpy(sendbuf, "write");
-        if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-
-        printf("Escreva o dado a ser escrito: ");
-        scanf("%s",sendbuf);
-        //strcpy(sendbuf, "Dado do cliente para o server");
-        if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-        system("clear");
-        break;
+    case 2:
+    {
+      //ler dado
+      strcpy(sendbuf, "read");
+      if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
+      {
+        perror("Send()");
+        exit(5);
       }
 
-      case 2:
+      if (recv(s, recvbuf, sizeof(recvbuf), 0) < 0)
       {
-        //ler dado
-        strcpy(sendbuf, "read");
-        if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-
-        if (recv(s, recvbuf, sizeof(recvbuf), 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-        
-        system("clear");
-        printf("Dado armazenado: %s\n\n\n", recvbuf);
-        break;
+        perror("Send()");
+        exit(5);
       }
 
-      case 3:
+      system("clear");
+      printf("Dado armazenado: %s\n\n\n", recvbuf);
+      break;
+    }
+
+    case 3:
+    {
+      strcpy(sendbuf, "verify");
+
+      if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
       {
-        strcpy(sendbuf, "verify");
-
-        if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-
-        if (recv(s, recvbuf, sizeof(recvbuf), 0) < 0)
-        {
-          perror("Send()");
-          exit(5);
-        }
-        
-        system("clear");
-        printf("Status do serveidor: %s\n\n\n", recvbuf);
-        break;
+        perror("Send()");
+        exit(5);
       }
 
-      default:
+      if (recv(s, recvbuf, sizeof(recvbuf), 0) < 0)
       {
-        printf("Opcao Invalida, tente novamente.");
-        break;
+        perror("Send()");
+        exit(5);
       }
+
+      system("clear");
+      printf("Status do serveidor: %s\n\n\n", recvbuf);
+      break;
+    }
+
+    default:
+    {
+      printf("Opcao Invalida, tente novamente.");
+      break;
+    }
     }
   }
 
@@ -202,4 +196,67 @@ int main(int argc, char **argv)
   printf("Cliente terminou com sucesso.\n");
 
   exit(0);
+}
+
+int obtemServer()
+{
+  char sendbuf[1024];
+  char recvbuf[1024];
+  struct hostent *hostnm;
+  struct sockaddr_in server;
+  int s;
+  int porta;
+
+  hostnm = gethostbyname(ENDERECO_DIRETORIO);
+  if (hostnm == (struct hostent *)0)
+  {
+    fprintf(stderr, "Gethostbyname failed\n");
+    exit(2);
+  }
+
+  /*
+  * Define o endereco IP e a porta do servidor
+  */
+  server.sin_family = AF_INET;
+  server.sin_port = htons(PORTA_DIRETORIO);
+  server.sin_addr.s_addr = *((unsigned long *)hostnm->h_addr);
+
+  /*
+  * Cria um socket TCP (stream)
+  */
+  if ((s = socket(PF_INET, SOCK_STREAM, 0)) < 0)
+  {
+    perror("Socket()");
+    exit(3);
+  }
+
+  /* Estabelece conexao com o servidor */
+  if (connect(s, (struct sockaddr *)&server, sizeof(server)) < 0)
+  {
+    perror("Connect()");
+    exit(4);
+  }
+
+  sleep(1);
+
+  strcpy(sendbuf, "cliente");
+  /* Envia a mensagem no buffer de envio para o servidor */
+  if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
+  {
+    perror("Send()");
+    exit(5);
+  }
+
+  if (recv(s, recvbuf, sizeof(recvbuf), 0) == -1)
+	{
+		perror("Recv()");
+		exit(6);
+	}
+
+  porta = atoi(recvbuf);
+
+  /* Fecha o socket */
+  close(s);
+
+  return porta;
 }
