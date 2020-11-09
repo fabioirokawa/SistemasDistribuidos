@@ -96,8 +96,10 @@ int main(int argc, char **argv)
       }
 
       sleep(0.25);
-
-      strcpy(sendbuf, "Dado do cliente para o server");
+      system("clear");
+      printf("Digite a string que deseja guardar: ");
+      scanf("%s", &sendbuf);
+      //strcpy(sendbuf, "Dado do cliente para o server");
       if (send(s, sendbuf, strlen(sendbuf) + 1, 0) < 0)
       {
         perror("Send()");

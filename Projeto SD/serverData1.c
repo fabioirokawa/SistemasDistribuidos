@@ -19,6 +19,8 @@
 #define SHM_KEY 5000
 
 void modificaDado(char *dado, sem_t *semaphore, char *share_memory);
+void guardaLog(char *dado, FILE *fp1);
+char *recuperaLog(char *share_memory);
 
 int main(int argc, char **argv)
 {
@@ -32,6 +34,7 @@ int main(int argc, char **argv)
     int shmid;
     int namelen;
     pid_t pid, fid;
+    FILE *fp;
 
     //Criando memoria compartilhada
     shmid = shmget(SHM_KEY, 1024, IPC_CREAT | 0666);
@@ -50,12 +53,15 @@ int main(int argc, char **argv)
     sem_unlink(NOME_SEMAFORO);
 
     //Criando semaforo
-    sem_t *semaphore = sem_open(NOME_SEMAFORO, O_CREAT, 0644, 0);
+    sem_t *semaphore = sem_open(NOME_SEMAFORO, O_CREAT, 0644, 1);
     if (semaphore == SEM_FAILED)
     {
         perror("Erro ao inicializar semaforo");
         exit(EXIT_FAILURE);
     }
+
+    //Recuperando dados anteriores
+    recuperaLog(share_memory);
 
     /*
      * Cria um socket TCP (stream) para aguardar conexoes
@@ -133,7 +139,9 @@ int main(int argc, char **argv)
                     perror("Recv()");
                     exit(6);
                 }
+                guardaLog(recvbuf, fp);
                 modificaDado(recvbuf, semaphore, share_memory);
+                printf("Dado recebido: %s\n", recvbuf);
             }
             else if (strcmp(recvbuf, "read") == 0)
             {
@@ -144,6 +152,7 @@ int main(int argc, char **argv)
                     perror("Send()");
                     exit(7);
                 }
+                printf("Dado enviado: %s \n", sendbuf);
             }
 
             /* Fecha o socket conectado ao cliente */
@@ -191,4 +200,42 @@ void modificaDado(char *dado, sem_t *semaphore, char *share_memory)
 
     //Liberando o semaforo
     sem_post(semaphore);
+}
+
+void guardaLog(char *dado, FILE *fp1)
+{
+    fp1 = fopen("log_s1.txt", "a");
+    fputs("log1 \n", fp1);
+    fputs(dado, fp1);
+    fputs("\n", fp1);
+    fclose(fp1);
+}
+
+char *recuperaLog(char *share_memory)
+{
+    FILE *fp;
+    fp = fopen("log_s1.txt", "r");
+    
+    if (fp != NULL)
+    {
+
+        char linha[1024];
+        char linha_aux[1024];
+
+        do
+        {
+            fflush(stdout);
+
+            strcpy(linha, linha_aux);
+            fgets(linha_aux, 1024, fp);
+
+        } while (strcmp(linha_aux, linha) != 0);
+
+        printf("Recuperacao de log: %s \n", linha);
+        strcpy(share_memory, linha);
+        fclose(fp);
+        return linha;
+    }
+
+    return "vazio";
 }

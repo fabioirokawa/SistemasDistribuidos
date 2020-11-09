@@ -503,7 +503,7 @@ void registrarNoDiretorio(int portaServer)
         exit(5);
     }
 
-    sleep(5);
+    sleep(1);
 
     /* Convertendo int para string */
     sprintf(sendbuf, "%d", portaServer);
